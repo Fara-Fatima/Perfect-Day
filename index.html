@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Namaz Companion</title>
+    <style>
+        :root {
+            --bg: #edf5f7;
+            --bg-2: #f9fbff;
+            --card: rgba(255, 255, 255, 0.82);
+            --card-strong: #ffffff;
+            --primary: #1f7a8c;
+            --primary-2: #145b6d;
+            --accent: #7ec8a9;
+            --success: #2bb673;
+            --text: #172732;
+            --muted: #597183;
+            --line: rgba(23, 39, 50, 0.09);
+            --shadow: 0 18px 42px rgba(17, 56, 70, 0.12);
+            --warning: #f3b84d;
+            --danger: #d75a5a;
+            --soft-green: rgba(126, 200, 169, 0.12);
+        }
+
+        body[data-theme="dark"] {
+            --bg: #0d1a22;
+            --bg-2: #142a35;
+            --card: rgba(20, 33, 41, 0.92);
+            --card-strong: rgba(16, 27, 35, 0.95);
+            --primary: #77d5c9;
+            --primary-2: #4cc4b8;
+            --accent: #96e2b7;
+            --success: #4ad899;
+            --text: #edf6f9;
+            --muted: #b5c9d6;
+            --line: rgba(255, 255, 255, 0.08);
+            --shadow: 0 25px 50px rgba(0, 0, 0, 0.28);
+            --warning: #f5c15b;
+            --danger: #ff8f8f;
+            --soft-green: rgba(81, 196, 141, 0.14);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            background: radial-gradient(circle at top, var(--bg-2), var(--bg) 45%);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+            padding: 20px 14px 40px;
+        }
+
+        .app-shell {
+            width: min(1100px, 100%);
+            margin: 0 auto;
+            display: grid;
+            gap: 18px;
+        }
+
+        .panel, .header-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+            animation: fadeUp 0.5s ease;
+        }
+
+        .header-card {
+            padding: 18px 18px 16px;
+        }
+
+        .top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .eyebrow {
+            margin: 0 0 6px;
+            color: var(--primary-2);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 3rem);
+            line-height: 1.1;
+        }
+
+        .tagline {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .theme-toggle {
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            color: white;
+            padding: 10px 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 18px rgba(31, 122, 140, 0.2);
+        }
+
+        .date-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid var(--line);
+        }
+
+        .current-date {
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .city-badge {
+            background: rgba(126, 200, 169, 0.12);
+            color: var(--primary-2);
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr 1fr;
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        .metric-card {
+            border-radius: 22px;
+            padding: 18px 16px;
+            background: var(--card-strong);
+            border: 1px solid var(--line);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .ring {
+            --progress-angle: 0deg;
+            position: relative;
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary) 0deg, var(--primary) var(--progress-angle), rgba(128, 138, 146, 0.18) var(--progress-angle), rgba(128,138,146,0.18) 360deg);
+            display: grid;
+            place-items: center;
+            box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.05);
+        }
+
+        .ring::before {
+            content: "";
+            position: absolute;
+            inset: 10px;
+            background: var(--card-strong);
+            border-radius: 50%;
+        }
+
+        .ring span {
+            position: relative;
+            z-index: 1;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .metric-label {
+            color: var(--muted);
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .metric-value {
+            font-weight: 900;
+            font-size: clamp(1.5rem, 2vw, 2.25rem);
+            margin-top: 8px;
+        }
+
+        .progress-copy h2 {
+            margin: 0 0 8px;
+            font-size: clamp(1.6rem, 2vw, 2.3rem);
+        }
+
+        .progress-copy p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+        }
+
+        .panel {
+            padding: 18px 18px 16px;
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .panel-head h2,
+        .panel h2 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .pill {
+            background: var(--soft-green);
+            color: var(--primary-2);
+            border-radius: 999px;
+            padding: 8px 10px;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .prayer-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .prayer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 12px 14px;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .prayer-item:hover {
+            transform: translateY(-1px);
+        }
+
+        .prayer-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 7px;
+            border: 2px solid rgba(31, 122, 140, 0.8);
+            appearance: none;
+            background: rgba(255,255,255,0.15);
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .checkbox:checked {
+            background: linear-gradient(135deg, var(--success), #1ca158);
+            border-color: var(--success);
+        }
+
+        .checkbox:checked::after {
+            content: "✓";
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .prayer-name {
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .prayer-tag {
+            background: rgba(126, 200, 169, 0.12);
+            color: var(--primary-2);
+            border-radius: 999px;
+            padding: 7px 9px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .prayer-item.completed {
+            background: rgba(43, 182, 115, 0.08);
+            border-color: rgba(43, 182, 115, 0.2);
+        }
+
+        .prayer-item.completed .prayer-name {
+            text-decoration: line-through;
+            color: var(--muted);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            resize: vertical;
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.06);
+            color: var(--text);
+            padding: 12px 14px;
+            font: inherit;
+            line-height: 1.6;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        button.action-btn {
+            border: none;
+            cursor: pointer;
+            border-radius: 14px;
+            padding: 11px 14px;
+            font-weight: 800;
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+
+        button.action-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            color: white;
+        }
+
+        .secondary-btn {
+            background: rgba(126, 200, 169, 0.12);
+            color: var(--primary-2);
+        }
+
+        .meta-row {
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--muted);
+            font-size: 0.8rem;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .time-list,
+        .guide-list,
+        .month-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .time-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px 14px;
+        }
+
+        .time-name {
+            font-weight: 800;
+        }
+
+        .time-value {
+            font-weight: 700;
+            color: var(--primary-2);
+        }
+
+        .hijri-box {
+            margin-top: 10px;
+            background: linear-gradient(135deg, rgba(126, 200, 169, 0.2), rgba(31, 122, 140, 0.1));
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 14px 12px;
+        }
+
+        .hijri-date {
+            font-size: 1.5rem;
+            font-weight: 900;
+        }
+
+        .month-list {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 14px;
+        }
+
+        .month-item {
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            text-align: center;
+            border: 1px solid var(--line);
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .month-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            color: white;
+            border-color: transparent;
+        }
+
+        .chart-wrap {
+            margin-top: 14px;
+            display: flex;
+            align-items: end;
+            height: 170px;
+            gap: 8px;
+            padding: 12px 0 0;
+            overflow: hidden;
+        }
+
+        .bar-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: end;
+            gap: 8px;
+            height: 100%;
+        }
+
+        .bar {
+            width: 100%;
+            background: linear-gradient(180deg, var(--accent), var(--primary));
+            border-radius: 10px 10px 0 0;
+            min-height: 10px;
+            transform-origin: bottom;
+            animation: growBar 0.7s ease;
+            box-shadow: 0 8px 18px rgba(31, 122, 140, 0.18);
+        }
+
+        .bar-label {
+            font-size: 0.7rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .guide-list {
+            margin-top: 12px;
+        }
+
+        .guide-card {
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            background: rgba(255,255,255,0.04);
+            padding: 12px 14px;
+        }
+
+        .guide-card h4 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+        }
+
+        .guide-card ul {
+            margin: 0;
+            padding-left: 18px;
+            line-height: 1.8;
+            color: var(--text);
+        }
+
+        .dua-box {
+            margin-top: 8px;
+            border-left: 4px solid var(--accent);
+            background: rgba(126, 200, 169, 0.12);
+            border-radius: 12px;
+            padding: 10px 12px;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes growBar {
+            from { transform: scaleY(0); }
+            to { transform: scaleY(1); }
+        }
+
+        @media (max-width: 900px) {
+            .hero-grid,
+            .main-grid,
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 560px) {
+            body {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
+            .header-card,
+            .panel {
+                border-radius: 18px;
+            }
+
+            .city-badge,
+            .pill {
+                width: 100%;
+                text-align: center;
+            }
+
+            .top-row,
+            .date-row,
+            .meta-row,
+            .panel-head {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .progress-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .theme-toggle,
+            .action-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="app-shell">
+        <header class="header-card">
+            <div class="top-row">
+                <div>
+                    <p class="eyebrow">Daily worship</p>
+                    <h1>Namaz Companion</h1>
+                    <p class="tagline">Track your prayers with calm focus and intention</p>
+                </div>
+                <button class="theme-toggle" id="themeToggle" type="button">🌙 Dark mode</button>
+            </div>
+
+            <div class="date-row">
+                <div class="current-date" id="currentDate">Today</div>
+                <div class="city-badge">Prayer planner • Dhaka</div>
+            </div>
+
+            <div class="hero-grid">
+                <div class="metric-card progress-card">
+                    <div class="ring" id="progressRing"><span id="progressPercent">0%</span></div>
+                    <div class="progress-copy">
+                        <h2 id="todayCount">0 / 5</h2>
+                        <p>Prayers completed today</p>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">Streak</div>
+                    <div class="metric-value" id="streakCount">0</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">Focus</div>
+                    <div class="metric-value" id="focusValue">Calm</div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-grid">
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>Prayer checklist</h2>
+                    <span class="pill" id="completionText">0/5</span>
+                </div>
+                <div class="prayer-list" id="prayerList"></div>
+            </section>
+
+            <aside class="panel">
+                <h2>Daily reflection</h2>
+                <textarea id="dailyNote" placeholder="Write your intention, gratitude, or a reminder for today..."></textarea>
+                <div class="actions">
+                    <button class="action-btn primary-btn" id="saveBtn" type="button">Save today</button>
+                    <button class="action-btn secondary-btn" id="resetBtn" type="button">Reset</button>
+                </div>
+                <div class="meta-row">
+                    <span id="lastSaved">Not saved yet</span>
+                    <span id="motivationalText">Stay consistent</span>
+                </div>
+            </aside>
+        </main>
+
+        <section class="info-grid">
+            <div class="panel">
+                <h2>Prayer times</h2>
+                <div class="time-list" id="timeList"></div>
+            </div>
+
+            <div class="panel">
+                <h2>Islamic calendar</h2>
+                <div class="hijri-box">
+                    <div class="hijri-date" id="hijriDate">Muharram 1448 AH</div>
+                    <div id="gregorianDate" style="color: var(--muted); margin-top: 6px;">Gregorian date</div>
+                </div>
+                <div class="month-list" id="monthList"></div>
+            </div>
+
+            <div class="panel">
+                <h2>Monthly progress</h2>
+                <div class="chart-wrap" id="progressChart"></div>
+            </div>
+
+            <div class="panel" style="grid-column: 1 / -1;">
+                <h2>Prayer guide, wudu guide & duas</h2>
+                <div class="guide-list">
+                    <div class="guide-card">
+                        <h4>Prayer guide</h4>
+                        <ul>
+                            <li>Make intention before every salah.</li>
+                            <li>Perform wudu and face the Qibla.</li>
+                            <li>Stand with humility and say Takbir.</li>
+                            <li>Recite Al-Fatihah and a short surah.</li>
+                            <li>Complete all rak'ahs with bowing and prostration.</li>
+                        </ul>
+                        <div class="dua-box" dir="rtl" lang="ar">
+                            دليل الصلاة: «نِيَّةٌ، وُضُوءٌ، وَجْهَةُ القِبْلَةِ، بِسْمِ اللَّهِ، وَالتَّكْبِيرَةُ، وَقِرَاءَةُ الفَاتِحَةِ وَسُورَةٍ، ثُمَّ الرُّكُوعُ وَالسُّجُودُ»
+                        </div>
+                    </div>
+
+                    <div class="guide-card">
+                        <h4>Wudu guide</h4>
+                        <ul>
+                            <li>Begin with Bismillah and intention.</li>
+                            <li>Wash hands, mouth, nose, face, arms, ears, and feet.</li>
+                            <li>Wipe the head and complete in proper order.</li>
+                            <li>Say the dua after wudu with sincerity.</li>
+                        </ul>
+                        <div class="dua-box" dir="rtl" lang="ar">
+                            دليل الوضوء: «بِسْمِ اللَّهِ، غَسْلُ الْيَدَيْنِ، المضمضة، الاستنشاق، غسل الوجه، غسل اليدين إلى المرفقين، مسح الرأس، غسل القدمين إلى الكعبين»
+                        </div>
+                    </div>
+
+                    <div class="guide-card">
+                        <h4>Duas</h4>
+                        <div class="dua-box">Before prayer: “Allahumma ihdina fee man hadayt...”</div>
+                        <div class="dua-box" dir="rtl" lang="ar">اللَّهُمَّ اهْدِنِي فِيمَنْ هَدَيْتَ</div>
+
+                        <div class="dua-box">After prayer: “Astaghfirullah” three times, then “Allahumma antas-salam...”</div>
+                        <div class="dua-box" dir="rtl" lang="ar">أَسْتَغْفِرُ اللَّهَ ۞ اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ</div>
+
+                        <div class="dua-box">Daily supplication: “Allahumma barik lana fee ma razaqtana waqina 'adhaban-nar.”</div>
+                        <div class="dua-box" dir="rtl" lang="ar">اللَّهُمَّ بَارِكْ لَنَا فِيمَا رَزَقْتَنَا وَقِنَا عَذَابَ النَّارِ</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const prayers = [
+            { id: 'fajr', name: 'Fajr', tag: 'Sunrise' },
+            { id: 'dhuhr', name: 'Dhuhr', tag: 'Noon' },
+            { id: 'asr', name: 'Asr', tag: 'Afternoon' },
+            { id: 'maghrib', name: 'Maghrib', tag: 'Sunset' },
+            { id: 'isha', name: 'Isha', tag: 'Night' }
+        ];
+
+        const storageKey = 'namaz-companion-state-v1';
+        const todayKey = new Date().toISOString().slice(0, 10);
+
+        const prayerListEl = document.getElementById('prayerList');
+        const timeListEl = document.getElementById('timeList');
+        const progressChartEl = document.getElementById('progressChart');
+        const themeToggle = document.getElementById('themeToggle');
+        const currentDateEl = document.getElementById('currentDate');
+        const dailyNoteEl = document.getElementById('dailyNote');
+        const saveBtn = document.getElementById('saveBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const lastSavedEl = document.getElementById('lastSaved');
+        const completionTextEl = document.getElementById('completionText');
+        const streakCountEl = document.getElementById('streakCount');
+        const focusValueEl = document.getElementById('focusValue');
+        const todayCountEl = document.getElementById('todayCount');
+        const progressPercentEl = document.getElementById('progressPercent');
+        const progressRingEl = document.getElementById('progressRing');
+        const motivationalTextEl = document.getElementById('motivationalText');
+        const hijriDateEl = document.getElementById('hijriDate');
+        const gregorianDateEl = document.getElementById('gregorianDate');
+
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('namaz-theme', theme);
+            themeToggle.textContent = theme === 'dark' ? '☀️ Light mode' : '🌙 Dark mode';
+        }
+
+        function getPrayerTimes() {
+            const now = new Date();
+            const dayNum = now.getDate();
+            const monthNum = now.getMonth() + 1;
+            const baseTimes = [
+                { name: 'Fajr', time: '5:12 AM' },
+                { name: 'Dhuhr', time: '1:14 PM' },
+                { name: 'Asr', time: '4:38 PM' },
+                { name: 'Maghrib', time: '6:46 PM' },
+                { name: 'Isha', time: '8:09 PM' }
+            ];
+
+            return baseTimes.map((item, index) => ({
+                ...item,
+                time: adjustTime(item.time, index, dayNum, monthNum)
+            }));
+        }
+
+        function adjustTime(time, index, dayNum, monthNum) {
+            const [hour, minutePart] = time.split(':');
+            const minute = Number(minutePart.replace(/[A-Z ]+/g, ''));
+            const meridiem = time.includes('PM') ? 'PM' : 'AM';
+            let hourNum = Number(hour);
+            const tweak = ((dayNum + monthNum + index) % 3) - 1;
+            hourNum += tweak;
+            if (meridiem === 'PM' && hourNum >= 12) {
+                hourNum -= 12;
+            }
+            if (meridiem === 'AM' && hourNum >= 12) {
+                hourNum -= 12;
+            }
+            let finalHour = hourNum;
+            if (finalHour === 0) finalHour = 12;
+            return `${finalHour}:${String(minute + ((dayNum + index) % 2 === 0 ? 1 : 0)).padStart(2, '0')} ${meridiem}`;
+        }
+
+        function renderPrayerTimes() {
+            const prayerTimes = getPrayerTimes();
+            timeListEl.innerHTML = prayerTimes.map(item => `
+                <div class="time-item">
+                    <span class="time-name">${item.name}</span>
+                    <span class="time-value">${item.time}</span>
+                </div>
+            `).join('');
+        }
+
+        function getHijriLabel() {
+            const monthNames = ['Muharram', 'Safar', 'Rabi\' al-Awwal', 'Rabi\' al-Thani', 'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhul Qa\'dah', 'Dhul Hijjah'];
+            const today = new Date();
+            const monthIndex = (today.getMonth() + 2) % 12;
+            const year = 1447 + Math.floor((today.getFullYear() - 2024) / 1.03);
+            const day = today.getDate() + 2;
+            return `${day} ${monthNames[monthIndex]} ${year} AH`;
+        }
+
+        function renderIslamicCalendar() {
+            const monthNames = ['Muharram', 'Safar', 'Rabi\' al-Awwal', 'Rabi\' al-Thani', 'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal', 'Dhul Qa\'dah', 'Dhul Hijjah'];
+            const today = new Date();
+            const activeMonth = (today.getMonth() + 2) % 12;
+            hijriDateEl.textContent = getHijriLabel();
+            gregorianDateEl.textContent = today.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+            const monthList = monthNames.map((month, index) => `
+                <div class="month-item ${index === activeMonth ? 'active' : ''}">${month.slice(0, 6)}</div>
+            `).join('');
+            document.getElementById('monthList').innerHTML = monthList;
+        }
+
+        function renderProgressChart() {
+            const history = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            const result = [];
+            const now = new Date();
+            for (let i = 29; i >= 0; i--) {
+                const day = new Date(now);
+                day.setDate(now.getDate() - i);
+                const key = day.toISOString().slice(0, 10);
+                const entry = history[key];
+                const completed = entry ? Object.values(entry.prayers || {}).filter(Boolean).length : 0;
+                const percent = Math.round((completed / prayers.length) * 100);
+                result.push({ label: day.getDate(), value: percent });
+            }
+
+            progressChartEl.innerHTML = result.map(item => `
+                <div class="bar-col">
+                    <div class="bar" style="height: ${Math.max(item.value, 8)}%"></div>
+                    <div class="bar-label">${item.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadData() {
+            const all = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            return all[todayKey] || { prayers: {}, note: '', savedAt: null };
+        }
+
+        function saveData() {
+            const all = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            const state = {
+                prayers: {},
+                note: dailyNoteEl.value.trim(),
+                savedAt: new Date().toISOString()
+            };
+
+            prayers.forEach(prayer => {
+                const input = document.querySelector(`input[data-id="${prayer.id}"]`);
+                state.prayers[prayer.id] = !!input && input.checked;
+            });
+
+            all[todayKey] = state;
+            localStorage.setItem(storageKey, JSON.stringify(all));
+            lastSavedEl.textContent = 'Saved ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            renderProgressChart();
+        }
+
+        function updateSummary() {
+            const checked = document.querySelectorAll('.checkbox:checked').length;
+            const percent = Math.round((checked / prayers.length) * 100);
+            todayCountEl.textContent = `${checked} / ${prayers.length}`;
+            progressPercentEl.textContent = `${percent}%`;
+            progressRingEl.style.setProperty('--progress-angle', `${percent * 3.6}deg`);
+            completionTextEl.textContent = `${checked}/${prayers.length}`;
+
+            if (checked === 0) {
+                focusValueEl.textContent = 'Calm';
+                motivationalTextEl.textContent = 'Start with one prayer';
+            } else if (checked <= 2) {
+                focusValueEl.textContent = 'Steady';
+                motivationalTextEl.textContent = 'Keep the rhythm';
+            } else if (checked <= 4) {
+                focusValueEl.textContent = 'Strong';
+                motivationalTextEl.textContent = 'You are on track';
+            } else {
+                focusValueEl.textContent = 'Excellent';
+                motivationalTextEl.textContent = 'Great consistency';
+            }
+
+            const all = JSON.parse(localStorage.getItem(storageKey) || '{}');
+            const dates = Object.keys(all).sort().reverse();
+            let streak = 0;
+
+            for (const date of dates) {
+                const entry = all[date];
+                if (!entry) continue;
+                const totalDone = Object.values(entry.prayers || {}).filter(Boolean).length;
+                if (totalDone === 0) {
+                    if (date === todayKey) continue;
+                    break;
+                }
+                streak += 1;
+                if (date === todayKey) break;
+            }
+
+            streakCountEl.textContent = String(streak);
+
+            const saved = loadData();
+            const savedAt = saved.savedAt ? new Date(saved.savedAt) : null;
+            lastSavedEl.textContent = savedAt ? 'Saved ' + savedAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) : 'Not saved yet';
+        }
+
+        function renderPrayerList() {
+            const today = loadData();
+            const states = today.prayers || {};
+
+            prayerListEl.innerHTML = prayers.map(prayer => {
+                const checked = !!states[prayer.id];
+                return `
+                    <label class="prayer-item ${checked ? 'completed' : ''}">
+                        <div class="prayer-main">
+                            <input class="checkbox" type="checkbox" data-id="${prayer.id}" ${checked ? 'checked' : ''} />
+                            <div class="prayer-name">${prayer.name}</div>
+                        </div>
+                        <span class="prayer-tag">${prayer.tag}</span>
+                    </label>
+                `;
+            }).join('');
+
+            dailyNoteEl.value = today.note || '';
+            updateSummary();
+        }
+
+        currentDateEl.textContent = new Date().toLocaleDateString(undefined, {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.body.getAttribute('data-theme');
+            setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        });
+
+        prayerListEl.addEventListener('change', (event) => {
+            if (event.target.matches('.checkbox')) {
+                updateSummary();
+            }
+        });
+
+        saveBtn.addEventListener('click', () => {
+            saveData();
+            updateSummary();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            localStorage.removeItem(storageKey);
+            renderPrayerList();
+            renderProgressChart();
+            lastSavedEl.textContent = 'Reset for today';
+            motivationalTextEl.textContent = 'A new day begins';
+        });
+
+        renderPrayerTimes();
+        renderPrayerList();
+        renderIslamicCalendar();
+        renderProgressChart();
+
+        const savedTheme = localStorage.getItem('namaz-theme') || 'light';
+        setTheme(savedTheme);
+    </script>
+</body>
+</html>
